@@ -1,0 +1,230 @@
+fmod SOUP{E :: TRIV} is
+    sort Soup{E} .
+    subsort E$Elt < Soup{E} .
+    op emp : -> Soup{E} [ctor] .
+    op _ _ : Soup{E} Soup{E} -> Soup{E} [ctor assoc comm id: emp].
+    op _\in_ : E$Elt Soup{E} -> Bool .
+    var X : E$Elt .
+    var S : Soup{E} .
+    eq X X = X . *** idempotency
+    eq X \in X S = true .
+    eq X \in S = false [owise] .
+endfm
+
+fmod PRIN is
+  sort Prin .
+  ops p q intr dP : -> Prin [ctor] .
+endfm
+
+view Prin from TRIV to PRIN is
+    sort Elt to Prin .
+endv
+
+fmod PRIN-SOUP is
+    pr SOUP{Prin} .
+endfm
+
+fmod RAND is
+  sort Rand .
+  op r : -> Rand [ctor] .
+endfm
+
+view Rand from TRIV to RAND is
+    sort Elt to Rand .
+endv
+
+fmod RAND-SOUP is
+    pr SOUP{Rand} .
+endfm
+
+fmod CIPHER is
+  pr PRIN .
+  pr RAND .
+  sort Cipher .
+  op enc : Prin Rand Prin -> Cipher .
+  op k : Cipher -> Prin .
+  op r : Cipher -> Rand .
+  op p : Cipher -> Prin .
+---   var K : Key .
+  var R : Rand .
+  vars P K : Prin .
+  vars C1 C2 : Cipher .
+  eq k(enc(K,R,P)) = K .
+  eq r(enc(K,R,P)) = R .
+  eq p(enc(K,R,P)) = P .
+endfm
+
+view Cipher from TRIV to CIPHER is
+  sort Elt to Cipher .
+endv
+
+fmod CIPHER-SOUP is
+  pr SOUP{Cipher} .
+endfm
+
+fmod MSG is
+  pr PRIN .
+  pr RAND .
+  pr CIPHER .
+  sort Msg .
+
+  op empt : -> Msg [ctor] .
+  op empCM : -> Msg [ctor] .
+  op empRM : -> Msg [ctor] .
+---   -- creator source destination body
+---   -- ---------------------------------
+  op cm : Prin    Prin   Prin        Cipher -> Msg .
+  op rm : Prin    Prin   Prin        Cipher -> Msg .
+  
+  op crt : Msg -> Prin .
+  op src : Msg -> Prin .
+  op dst : Msg -> Prin .
+  op r : Msg -> Rand .
+  op c : Msg -> Cipher .
+  
+  vars P1 P2 P3 : Prin .
+  var C : Cipher .
+  vars M1 M2 : Msg .
+  
+  eq crt(cm(P1,P2,P3,C)) = P1 .
+  eq crt(rm(P1,P2,P3,C)) = P1 .
+  eq src(cm(P1,P2,P3,C)) = P2 .
+  eq src(rm(P1,P2,P3,C)) = P2 .
+  eq dst(cm(P1,P2,P3,C)) = P3 .
+  eq dst(rm(P1,P2,P3,C)) = P3 .
+  eq c(cm(P1,P2,P3,C)) = C .
+  eq c(rm(P1,P2,P3,C)) = C .
+endfm
+
+view Msg from TRIV to MSG is
+  sort Elt to Msg .
+endv
+
+fmod NETWORK is
+  pr SOUP{Msg} .
+  op _\in_ : Cipher Soup{Msg} -> Bool .
+
+  var NW : Soup{Msg} .
+  var M : Msg .
+  var R : Rand .
+  var C : Cipher .
+  vars P1 P2 P3 : Prin .
+
+  eq C \in rm(P1, P2, P3, C) NW = true .
+  eq C \in cm(P1, P2, P3, C) NW = true .
+  eq C \in NW = false [owise] .
+endfm
+
+fmod OCOM is
+    pr NETWORK .
+    pr RAND-SOUP .
+    pr CIPHER-SOUP .
+    pr PRIN-SOUP .
+    sort OCom .
+    
+    op newmsg:_ : Msg -> OCom [ctor] .
+    op nw:_ : Soup{Msg} -> OCom [ctor] .
+    op rands:_ : Soup{Rand} -> OCom [ctor] .
+    op urand:_ : Soup{Rand} -> OCom [ctor] .
+    op cipher:_ : Soup{Cipher} -> OCom [ctor] .
+    op prins:_ : Soup{Prin} -> OCom [ctor] .
+    op cm:_ : Msg -> OCom [ctor] .
+    op rm:_ : Msg -> OCom [ctor] .
+    op nwCM:_ : Soup{Msg} -> OCom [ctor] .
+    op nwRM:_ : Soup{Msg} -> OCom [ctor] .
+endfm
+
+view OCom from TRIV to OCOM is
+    sort Elt to OCom .
+endv
+
+fmod OCOM-SOUP is
+    pr SOUP{OCom} .
+endfm
+
+fmod CONFIG is
+    pr OCOM-SOUP .
+    sort Config .
+    op {_} : Soup{OCom} -> Config [ctor] .
+    op init : -> Config .
+    eq init = {(newmsg: empt) (cm: empCM) (rm: empRM) (nw: emp) 
+                (urand: emp) (rands: r) (cipher: emp) (nwCM: emp) 
+                (nwRM: emp) (prins: (p q intr))} .
+endfm
+
+mod IFF is
+    inc CONFIG .
+    
+    vars M CM RM : Msg .
+    var NW : Soup{Msg} .
+    vars NWCM NWRM : Soup{Msg} .
+
+    var R : Rand .
+    var Rs : Soup{Rand} .
+
+    vars P Q P' Q' P'' Q'' P1 P2 P3 K : Prin .
+    var Ps : Soup{Prin} 
+    .
+    vars C C' : Cipher .
+    var CE : Soup{Cipher} .
+
+    var OCs : Soup{OCom} .
+
+    rl [sdcm] :
+    {(newmsg: M) (cm: CM) (rm: RM) (nw: NW) 
+    (urand: Rs) (rands: r) (cipher: CE) 
+    (nwCM: NWCM) (nwRM: NWRM) (prins: (P Q Ps))}
+    =>
+    {(newmsg: cm(P,P,Q,enc(dP,r,dP))) (cm: cm(P,P,Q,enc(dP,r,dP))) 
+    (rm: RM) (nw: (cm(P,P,Q,enc(dP,r,dP)) NW)) (urand: (r Rs)) 
+    (rands: emp) (cipher: CE) (nwCM: (cm(P,P,Q,enc(dP,r,dP)) NWCM)) 
+    (nwRM: NWRM) (prins: (P Q Ps))} .
+
+    rl [sdrm] :
+    {(newmsg: M) (cm: CM) (rm: RM) (nw: (cm(P',P,Q,C') NW)) 
+    (urand: Rs) (rands: emp) (cipher: CE) 
+    (nwCM: NWCM) (nwRM: NWRM) (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: rm(Q,Q,P,enc(Q,r,Q))) (cm: CM) (rm: rm(Q,Q,P,enc(Q,r,Q))) 
+    (nw: (rm(Q,Q,P,enc(Q,r,Q)) cm(P',P,Q,C') NW)) 
+    (urand: Rs) (cipher: (enc(Q,r,Q) CE)) (nwCM: NWCM) 
+    (nwRM: (rm(Q,Q,P,enc(Q,r,Q)) NWRM)) (prins: (P Q Ps)) OCs} .
+
+    rl [fkcm1] :
+    {(newmsg: M) (cm: CM) (rm: RM) (nw: NW) (urand: (R Rs)) 
+    (nwCM: NWCM) (nwRM: NWRM) (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: cm(intr,P,Q,enc(dP,R,dP))) (cm: cm(intr,P,Q,enc(dP,R,dP))) 
+    (rm: RM) (nw: (cm(intr,P,Q,enc(dP,R,dP)) NW)) (urand: (R Rs)) 
+    (nwCM: (cm(intr,P,Q,enc(dP,R,dP)) NWCM)) 
+    (nwRM: NWRM) (prins: (P Q Ps)) OCs} .
+
+    rl [fkrm1] :
+    {(newmsg: M) (cm: CM) (rm: RM) (nw: NW) (urand: (R Rs)) 
+    (cipher: CE) (nwCM: NWCM) (nwRM: NWRM) (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: rm(intr,Q,P,enc(intr,R,Q))) (cm: CM) 
+    (rm: rm(intr,Q,P,enc(intr,R,Q))) (nw: (rm(intr,Q,P,enc(intr,R,Q)) NW)) 
+    (urand: (R Rs)) (cipher: (enc(intr,R,Q) CE)) (nwCM: NWCM) 
+    (nwRM: (rm(intr,Q,P,enc(intr,R,Q)) NWRM)) (prins: (P Q Ps)) OCs} .
+
+    rl [fkrm2] :
+    {(newmsg: M) (cm: CM) (rm: RM) (nw: NW) (urand: (R Rs)) 
+    (cipher: (C CE)) (nwCM: NWCM) (nwRM: NWRM) (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: rm(intr,Q,P,C)) (cm: CM) (rm: rm(intr,Q,P,C)) 
+    (nw: (rm(intr,Q,P,C) NW)) (urand: (R Rs)) (cipher: (C CE)) 
+    (nwCM: NWCM) (nwRM: (rm(intr,Q,P,C) NWRM)) (prins: (P Q Ps)) OCs} .
+endm
+
+eof
+
+search [1,5] in IFF : init =>* {(nw: (rm(P1,P2,P3,enc(K,R,P2)) NW)) OCs} such that not(K =/= intr implies P2 =/= intr) . ***1
+search [1,5] in IFF : init =>* {(nw: (rm(P1,P2,P3,C) NW)) OCs} such that not(k(C) =/= intr implies p(C) =/= intr) . ***1
+search [1,5] in IFF : init =>* {(cipher: (enc(K,R,intr) CE)) OCs} such that not(K == intr) . ***2
+search [1,5] in IFF : init =>* {(cipher: (C CE)) (urand: Rs) OCs} such that not(r(C) \in Rs) . ***3
+search [1,5] in IFF : init =>* {(nw: (cm(P,P,Q,enc(dP,R,dP)) rm(Q',Q,P,enc(Q,R,Q)) NW)) OCs} 
+                    such that not(P =/= intr and Q =/= intr implies rm(Q,Q,P,enc(Q,R,Q)) \in (rm(Q',Q,P,enc(Q,R,Q)) NW)) .
+search [1,5] in IFF : init =>* {(cipher: (enc(K,R,P) CE)) (urand: Rs) OCs} such that not(R \in Rs) .
+search [1,5] in IFF : init =>* {(nw: (rm(Q,Q,P,enc(Q,R,Q)) cm(P',P,Q,enc(dP,R,dP)) NW)) OCs} 
+                    such that not(Q =/= intr implies cm(P,P,Q,enc(dP,R,dP)) \in (cm(P',P,Q,enc(dP,R,dP)) NW)) .

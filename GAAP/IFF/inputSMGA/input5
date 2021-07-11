@@ -1,0 +1,11 @@
+###keys
+newmsg nw urand cm rm nwCM nwRM
+###textDisplay
+newmsg::::EXT
+newmsg#0 newmsg#1 newmsg#2 newmsg#3#0 newmsg#3#1 newmsg#3#2
+###states
+(newmsg: cm(intr, intr, q, enc(k(dP), r, dP)) nw: cm(intr, intr, q, enc(k(dP), r, dP)) urand: r cm: cm(intr, intr, q, enc(k(dP), r, dP)) rm: empRM nwCM: cm(intr, intr, q, enc(k(dP), r, dP)) nwRM: emp) ||
+(newmsg: rm(q, q, intr, enc(k(intr), r, q)) nw: (rm(q, q, intr, enc(k(intr), r, q)) ; cm(intr, intr, q, enc(k(dP), r, dP))) urand: r cm: cm(intr, intr, q, enc(k(dP), r, dP)) rm: rm(q, q, intr, enc(k(intr), r, q)) nwCM: cm(intr, intr, q, enc(k(dP), r, dP)) nwRM: rm(q, q, intr, enc(k(intr), r, q))) ||
+(newmsg: cm(intr, q, p, enc(k(dP), r, dP)) nw: (cm(intr, q, p, enc(k(dP), r, dP)) ; rm(q, q, intr, enc(k(intr), r, q))) urand: r cm: cm(intr, q, p, enc(k(dP), r, dP)) rm: rm(q, q, intr, enc(k(intr), r, q)) nwCM: (cm(intr, q, p, enc(k(dP), r, dP)) ; cm(intr, intr, q, enc(k(dP), r, dP))) nwRM: rm(q, q, intr, enc(k(intr), r, q))) ||
+(newmsg: cm(intr, q, intr, enc(k(dP), r, dP)) nw: (cm(intr, q, p, enc(k(dP), r, dP)) ; cm(intr, q, intr, enc(k(dP), r, dP)) ; rm(q, q, intr, enc(k(intr), r, q))) urand: r cm: cm(intr, q, intr, enc(k(dP), r, dP)) rm: rm(q, q, intr, enc(k(intr), r, q)) nwCM: (cm(intr, q, p, enc(k(dP), r, dP)) ; cm(intr, q, intr, enc(k(dP), r, dP)) ; cm(intr, intr, q, enc(k(dP), r, dP))) nwRM: rm(q, q, intr, enc(k(intr), r, q))) ||
+(newmsg: rm(intr, intr, q, enc(k(intr), r, q)) nw: (cm(intr, q, p, enc(k(dP), r, dP)) ; cm(intr, q, intr, enc(k(dP), r, dP)) ; rm(q, q, intr, enc(k(intr), r, q)) ; rm(intr, intr, q, enc(k(intr), r, q))) urand: r cm: cm(intr, q, intr, enc(k(dP), r, dP)) rm: rm(intr, intr, q, enc(k(intr), r, q)) nwCM: (cm(intr, q, p, enc(k(dP), r, dP)) ; cm(intr, q, intr, enc(k(dP), r, dP)) ; cm(intr, intr, q, enc(k(dP), r, dP))) nwRM: (rm(q, q, intr, enc(k(intr), r, q)) ; rm(intr, intr, q, enc(k(intr), r, q))))

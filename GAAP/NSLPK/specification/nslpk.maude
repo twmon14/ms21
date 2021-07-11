@@ -1,0 +1,639 @@
+***(
+  Needham-Schroeder-Lowe Public-Key Authentication Protocol
+    (NSLPK Protocol)
+
+    Msg1 p --> q : E_q(n_p, p)
+    Msg2 q --> p : E_p(n_p, n_q, q)
+    Msg3 p --> q : E_q(n_q)
+)
+
+fmod SOUP{E :: TRIV} is
+    sort Soup{E} .
+    subsort E$Elt < Soup{E} .
+    op emp : -> Soup{E} [ctor] .
+    op _ _ : Soup{E} Soup{E} -> Soup{E} [ctor assoc comm id: emp].
+    op _\in_ : E$Elt Soup{E} -> Bool .
+    var X : E$Elt .
+    var S : Soup{E} .
+    eq X X = X . *** idempotency
+    eq X \in X S = true .
+    eq X \in S = false [owise] .
+endfm
+
+fmod PRIN is
+    sort Prin .
+    ops p q intr dP : -> Prin [ctor] .
+endfm
+
+view Prin from TRIV to PRIN is
+    sort Elt to Prin .
+endv
+
+fmod PRIN-SOUP is
+    pr SOUP{Prin} .
+endfm
+
+fmod RAND is
+    sort Rand .
+    ops r1 r2 dR empR : -> Rand [ctor] .
+endfm
+
+view Rand from TRIV to RAND is
+    sort Elt to Rand .
+endv
+
+fmod RAND-SOUP is
+    pr SOUP{Rand} .
+endfm
+
+fmod NONCE is
+    pr PRIN .
+    pr RAND .
+    sort Nonce .
+    op n : Prin Prin Rand -> Nonce [ctor] .
+    op dN : -> Nonce [ctor] .
+    op gen : Nonce -> Prin .
+    op forwhom : Nonce -> Prin .
+    op rand : Nonce -> Rand .
+    vars P1 P2 : Prin .
+    var R : Rand .
+    eq gen(n(P1,P2,R)) = P1 .
+    eq forwhom(n(P1,P2,R)) = P2 .
+    eq rand(n(P1,P2,R)) = R .
+endfm
+
+view Nonce from TRIV to NONCE is
+    sort Elt to Nonce .
+endv
+
+fmod NONCE-SOUP is
+    pr SOUP{Nonce} .
+endfm
+
+fmod CIPHER1 is
+  pr NONCE .
+  sort Cipher1 .
+  op enc1 : Prin Nonce Nonce Prin -> Cipher1 [ctor] .
+  op k    : Cipher1 -> Prin .
+  op n1   : Cipher1 -> Nonce .
+  op n2   : Cipher1 -> Nonce .
+  op p    : Cipher1 -> Prin .
+
+  op empC1 : -> Cipher1 [ctor] .
+  var K : Prin .
+  vars N1 N2 : Nonce .
+  var P : Prin .
+
+  eq k(enc1(K,N1,N2,P)) = K .
+  eq n1(enc1(K,N1,N2,P)) = N1 .
+  eq n2(enc1(K,N1,N2,P)) = N2 .
+  eq p(enc1(K,N1,N2,P)) = P .
+endfm
+
+view Cipher1 from TRIV to CIPHER1 is
+    sort Elt to Cipher1 .
+endv
+
+fmod CIPHER1-SOUP is
+  pr SOUP{Cipher1} .
+endfm
+
+fmod CIPHER2 is
+  pr NONCE .
+  sort Cipher2 .
+  op enc2 : Prin Nonce Nonce Prin -> Cipher2 [ctor] .
+  op k    : Cipher2 -> Prin .
+  op n1   : Cipher2 -> Nonce .
+  op n2   : Cipher2 -> Nonce .
+  op p    : Cipher2 -> Prin .
+
+  op empC2 : -> Cipher2 [ctor] .
+  var K : Prin .
+  vars N1 N2 : Nonce .
+  var P : Prin .
+
+  eq k(enc2(K,N1,N2,P)) = K .
+  eq n1(enc2(K,N1,N2,P)) = N1 .
+  eq n2(enc2(K,N1,N2,P)) = N2 .
+  eq p(enc2(K,N1,N2,P)) = P .
+endfm
+
+view Cipher2 from TRIV to CIPHER2 is
+    sort Elt to Cipher2 .
+endv
+
+fmod CIPHER2-SOUP is
+  pr SOUP{Cipher2} .
+endfm
+
+fmod CIPHER3 is
+  pr NONCE .
+  sort Cipher3 .
+  op enc3 : Prin Nonce Nonce Prin -> Cipher3 [ctor] .
+  op k    : Cipher3 -> Prin .
+  op n1   : Cipher3 -> Nonce .
+  op n2   : Cipher3 -> Nonce .
+  op p    : Cipher3 -> Prin .
+
+  op empC3 : -> Cipher3 [ctor] .
+  var K : Prin .
+  vars N1 N2 : Nonce .
+  var P : Prin .
+
+  eq k(enc3(K,N1,N2,P)) = K .
+  eq n1(enc3(K,N1,N2,P)) = N1 .
+  eq n2(enc3(K,N1,N2,P)) = N2 .
+  eq p(enc3(K,N1,N2,P)) = P .
+endfm
+
+view Cipher3 from TRIV to CIPHER3 is
+  sort Elt to Cipher3 .
+endv
+
+fmod CIPHER3-SOUP is
+  pr SOUP{Cipher3} .
+endfm
+
+fmod MESSAGE is
+  pr CIPHER1 .
+  pr CIPHER2 .
+  pr CIPHER3 .
+
+  sorts Msg1 Msg2 Msg3 Msg .
+  subsorts Msg1 Msg2 Msg3 < Msg .
+
+  op empt : -> Msg [ctor] .
+  op empM1 : -> Msg1 [ctor] .
+  op empM2 : -> Msg2 [ctor] .
+  op empM3 : -> Msg3 [ctor] .
+
+  op m1 : Prin Prin Prin Cipher1 -> Msg1 [ctor] .
+  op m2 : Prin Prin Prin Cipher2 -> Msg2 [ctor] .
+  op m3 : Prin Prin Prin Cipher3 -> Msg3 [ctor] .
+
+  op c : Msg -> Prin .
+  op s : Msg -> Prin .
+  op r : Msg -> Prin .
+  op b1 : Msg1 -> Cipher1 .
+  op b2 : Msg2 -> Cipher2 .
+  op b3 : Msg3 -> Cipher3 .
+
+  vars C S R : Prin .
+  var C1 : Cipher1 .
+  var C2 : Cipher2 .
+  var C3 : Cipher3 .
+
+  eq c(m1(C,S,R,C1)) = C .
+  eq s(m1(C,S,R,C1)) = S .
+  eq r(m1(C,S,R,C1)) = R .
+  eq b1(m1(C,S,R,C1)) = C1 .
+
+  eq c(m2(C,S,R,C2)) = C .
+  eq s(m2(C,S,R,C2)) = S .
+  eq r(m2(C,S,R,C2)) = R .
+  eq b2(m2(C,S,R,C2)) = C2 .
+
+  eq c(m3(C,S,R,C3)) = C .
+  eq s(m3(C,S,R,C3)) = S .
+  eq r(m3(C,S,R,C3)) = R .
+  eq b3(m3(C,S,R,C3)) = C3 .
+endfm
+
+view Msg from TRIV to MESSAGE is
+    sort Elt to Msg .
+endv
+
+fmod NETWORK is
+  pr SOUP{Msg} .
+  op _\in_ : Cipher1 Soup{Msg} -> Bool .
+  op _\in_ : Cipher2 Soup{Msg} -> Bool .
+  op _\in_ : Cipher3 Soup{Msg} -> Bool .
+  var N : Nonce .
+  vars C S R : Prin .
+  var C1 : Cipher1 .
+  var C2 : Cipher2 .
+  var C3 : Cipher3 .
+  var NW : Soup{Msg} .
+  
+  eq C1 \in m1(C,S,R,C1) NW = true .
+  eq C1 \in NW = false [owise] .
+  
+  eq C2 \in m2(C,S,R,C2) NW = true .
+  eq C2 \in NW = false [owise] .
+  
+  eq C3 \in m3(C,S,R,C3) NW = true .
+  eq C3 \in NW = false [owise] .
+endfm
+
+fmod OCOM is
+  pr NETWORK .
+  pr RAND-SOUP .
+  pr NONCE-SOUP .
+  pr CIPHER1-SOUP .
+  pr CIPHER2-SOUP .
+  pr CIPHER3-SOUP .
+  pr PRIN-SOUP .
+  sort OCom .
+  op newmsg:_ : Msg -> OCom [ctor] .
+  op newCen1:_ : Cipher1 -> OCom [ctor] .
+  op newCen2:_ : Cipher2 -> OCom [ctor] .
+  op newCen3:_ : Cipher3 -> OCom [ctor] .
+---   op newurand:_ : Rand -> OCom [ctor] .
+---   op newNonces:_ : Soup{Nonce} -> OCom [ctor] .
+  op cenc1:_ : Soup{Cipher1} -> OCom [ctor] .
+  op cenc2:_ : Soup{Cipher2} -> OCom [ctor] .
+  op cenc3:_ : Soup{Cipher3} -> OCom [ctor] .
+  op nw:_ : Soup{Msg} -> OCom [ctor] .
+  op m1:_ : Msg1 -> OCom [ctor] .
+  op m2:_ : Msg2 -> OCom [ctor] .
+  op m3:_ : Msg3 -> OCom [ctor] .
+  op nwM1:_ : Soup{Msg} -> OCom [ctor] .
+  op nwM2:_ : Soup{Msg} -> OCom [ctor] .
+  op nwM3:_ : Soup{Msg} -> OCom [ctor] . 
+  op rands:_ : Soup{Rand} -> OCom [ctor] .
+  op urand:_ : Soup{Rand} -> OCom [ctor] .
+  op nonces:_ : Soup{Nonce} -> OCom [ctor] .
+  op prins:_ : Soup{Prin} -> OCom [ctor] .
+endfm
+
+view OCom from TRIV to OCOM is
+    sort Elt to OCom .
+endv
+
+fmod OCOM-SOUP is
+    pr SOUP{OCom} .
+endfm
+
+fmod CONFIG is
+    pr OCOM-SOUP .
+    sort Config .
+    op {_} : Soup{OCom} -> Config [ctor] .
+    op init : -> Config .
+    eq init = {(newmsg: empt) (m1: empM1) (m2: empM2) (m3: empM3) 
+                (nonces: emp) (nw: emp)
+                (newCen1: empC1) (newCen2: empC2) (newCen3: empC3)
+                (cenc1: emp) (cenc2: emp) (cenc3: emp)
+                (nwM1: emp) (nwM2: emp) (nwM3: emp) (urand: emp)
+                (rands: (r1 r2)) (prins: (p q intr))} .
+    *** newmsg: latest message
+    *** m1-3: the latest message 1-3
+    *** newCen1-3: cipher in latest message gained by intruder
+    *** cenc1-3: set of cipher gained by intruder
+    *** nwM1-3: network contains m1-3
+    *** nw: network contains all messages
+    *** nonces: set of nonce gained by intruder
+    *** rands: set of random number
+    *** urand: set of used random number
+    *** prins: set of principles
+endfm
+
+mod NSLPK is
+  inc CONFIG .
+
+  var MSG : Msg .
+
+  var NW : Soup{Msg} .
+
+  vars R R' : Rand .
+  vars Rs Rs' : Soup{Rand} .
+  
+
+  vars N N' NON : Nonce .
+  vars Ns Ns' : Soup{Nonce} .
+
+  vars P Q P' Q' P'' Q'' C S Re : Prin .
+  var Ps : Soup{Prin} .
+
+  var C1 : Cipher1 .
+  var C2 : Cipher2 .
+  var C3 : Cipher3 .
+  
+  var Ce1 : Cipher1 .
+  var Ce2 : Cipher2 .
+  var Ce3 : Cipher3 .
+
+  var CE1 : Soup{Cipher1} .
+  var CE2 : Soup{Cipher2} .
+  var CE3 : Soup{Cipher3} .
+
+  var M1 : Msg1 .
+  var M2 : Msg2 .
+  var M3 : Msg3 .
+
+  var MSG1 : Msg1 .
+  var MSG2 : Msg2 .
+  var MSG3 : Msg3 .
+
+  var NWM1 : Soup{Msg} .
+  var NWM2 : Soup{Msg} .
+  var NWM3 : Soup{Msg} .
+
+  var OCs : Soup{OCom} .
+
+  ***
+  *** not(key(cipher_i(M)) = intr) ---> cipher_i will be stored in cenc_i
+  *** gen(N)== intr or key(cipher_i) == intr --> nonce will be stored in cnonce
+  
+  *** eq N \in cnonce(void) = (creator(N) = intruder) .
+  *** inv160 (creator(n) = intruder implies n \in cnonce(nw(s)))
+
+  rl [challenge] :
+    {(newmsg: MSG) 
+    (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc1: CE1)
+    (nwM1: NWM1) (nw: NW)
+    (nonces: Ns) 
+    (rands: (R Rs)) (urand: Rs') 
+    (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: m1(P,P,Q,enc1(Q,n(P,Q,R),n(dP,dP,dR),P)))
+    (m1: m1(P,P,Q,enc1(Q,n(P,Q,R),n(dP,dP,dR),P)))
+    (m2: empM2) (m3: empM3)
+    (newCen1: (if Q == intr then empC1 else enc1(Q,n(P,Q,R),n(dP,dP,dR),P) fi))
+    (newCen2: empC2)
+    (newCen3: empC3)
+    (cenc1: (if Q == intr then CE1 else (enc1(Q,n(P,Q,R),n(dP,dP,dR),P) CE1) fi))
+    (nwM1: (m1(P,P,Q,enc1(Q,n(P,Q,R),n(dP,dP,dR),P)) NWM1))
+    (nw: (m1(P,P,Q,enc1(Q,n(P,Q,R),n(dP,dP,dR),P)) NW))
+    (nonces: (if (Q == intr or gen(n(P,Q,R)) == intr) then (n(P,Q,R) Ns) else Ns fi))
+    (rands: Rs) (urand: (R Rs'))
+    (prins: (P Q Ps)) OCs} .
+
+  rl [Response] :
+    {(newmsg: MSG) 
+    (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc2: CE2)
+    (nwM2: NWM2) (nw: (m1(P',P,Q,enc1(Q,N,NON,P)) NW))
+    (nonces: Ns) 
+    (rands: (R Rs)) (urand: Rs') OCs}  
+    =>
+    {(newmsg: m2(Q,Q,P,enc2(P,N,n(Q,P,R),Q)))
+    (m1: empM1)
+    (m2: m2(Q,Q,P,enc2(P,N,n(Q,P,R),Q))) 
+    (m3: empM3)
+    (newCen1: empC1)
+    (newCen2: (if P == intr then empC2 else enc2(P,N,n(Q,P,R),Q) fi))
+    (newCen3: empC3)
+    (cenc2: (if P == intr then CE2 else (enc2(P,N,n(Q,P,R),Q) CE2) fi))
+    (nwM2: (m2(Q,Q,P,enc2(P,N,n(Q,P,R),Q)) NWM2)) 
+    (nw: (m2(Q,Q,P,enc2(P,N,n(Q,P,R),Q))
+          m1(P',P,Q,enc1(Q,N,NON,P)) NW))
+    (nonces: (if ((P == intr) or (gen(n(Q,P,R)) == intr)) then (n(Q,P,R) N Ns) else Ns fi))
+    (rands: Rs) (urand: (R Rs')) OCs} .
+
+  rl [Confirmation] :
+    {(newmsg: MSG) 
+    (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc3: CE3)
+    (nwM3: NWM3)
+    (nw: (m2(Q',Q,P,enc2(P,N,N',Q)) m1(P,P,Q,enc1(Q,N,NON,P)) NW))
+    (nonces: Ns) OCs}
+    =>
+    {(newmsg: m3(P,P,Q,enc3(Q,N',NON,dP)))
+    (m1: empM1) (m2: empM2)
+    (m3: m3(P,P,Q,enc3(Q,N',NON,dP)))
+    (newCen1: empC1)
+    (newCen2: empC2)
+    (newCen3: (if Q == intr then empC3 else enc3(Q,N',NON,dP) fi)) 
+    (cenc3: (if Q == intr then CE3 else (enc3(Q,N',NON,dP) CE3) fi))
+    (nwM3: (m3(P,P,Q,enc3(Q,N',NON,dP)) NWM3))
+    (nw: (m3(P,P,Q,enc3(Q,N',NON,dP))
+          m2(Q',Q,P,enc2(P,N,N',Q))
+          m1(P,P,Q,enc1(Q,N,NON,P)) NW))
+    (nonces: (if Q == intr then (N' Ns) else Ns fi)) OCs} .
+
+*** intruder fakes the messages based on 
+*** 1)nonce gleaned by intruder
+*** 2)existing message in nw
+
+*** not(key(cipher_i(M)) = intr) ---> cipher_i will be stored in cenc_i
+*** gen(N)== intr or key(cipher_i) == intr --> nonce will be stored in cnonce
+
+  rl [fake11] :
+    {(newmsg: MSG) 
+    (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc1: CE1)
+    (nwM1: NWM1)
+    (nw: NW) 
+    (nonces: (N Ns)) (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: m1(intr,P,Q,enc1(Q,N,n(dP,dP,dR),P)))
+    (m1: m1(intr,P,Q,enc1(Q,N,n(dP,dP,dR),P)))
+    (m2: empM2) (m3: empM3)
+    (nw: (m1(intr,P,Q,enc1(Q,N,n(dP,dP,dR),P)) NW))
+    (newCen1: (if Q == intr then empC1 else enc1(Q,N,n(dP,dP,dR),P) fi))
+    (newCen2: empC2)
+    (newCen3: empC3)
+    (cenc1: (if Q == intr then CE1 else (enc1(Q,N,n(dP,dP,dR),P) CE1) fi))
+    (nwM1: (m1(intr,P,Q,enc1(Q,N,n(dP,dP,dR),P)) NWM1))
+    (nonces: (N Ns)) (prins: (P Q Ps)) OCs} .
+
+  rl [fake12] :
+    {(newmsg: MSG) (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc1: (C1 CE1))
+    (nwM1: NWM1)
+    (nw: NW) 
+    (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: m1(intr,P,Q,C1))
+    (newCen1: C1) (newCen2: empC2) (newCen3: empC3)
+    (cenc1: (C1 CE1))
+    (m1: m1(intr,P,Q,C1)) (m2: empM2) (m3: empM3)
+    (nwM1: (m1(intr,P,Q,C1) NWM1)) 
+    (nw: (m1(intr,P,Q,C1) NW))
+    (prins: (P Q Ps)) OCs} .
+
+  rl [fake21] :
+    {(newmsg: MSG)
+    (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc2: CE2)
+    (nw: NW) 
+    (nwM2: NWM2)
+    (nonces: (N N' Ns)) (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: m2(intr,Q,P,enc2(P,N,N',Q)))
+    (m1: empM1) 
+    (m2: m2(intr,Q,P,enc2(P,N,N',Q))) 
+    (m3: empM3)
+    (newCen1: empC1)
+    (newCen2: (if P == intr then empC2 else enc2(P,N,N',Q) fi))
+    (newCen3: empC3)
+    (cenc2: (if P == intr then CE2 else (enc2(P,N,N',Q) CE2) fi))
+    (nw: (m2(intr,Q,P,enc2(P,N,N',Q)) NW))
+    (nwM2: (m2(intr,Q,P,enc2(P,N,N',Q)) NWM2)) 
+    (nonces: (N N' Ns)) (prins: (P Q Ps)) OCs} .
+
+  rl [fake22] :
+    {(newmsg: MSG) 
+    (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc2: (C2 CE2))
+    (nwM2: NWM2)
+    (nw: NW) 
+    (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: m2(intr,Q,P,C2))
+    (m1: empM1) (m2: m2(intr,Q,P,C2)) (m3: empM3)
+    (newCen1: empC1) (newCen2: C2) (newCen3: empC3)
+    (cenc2: (C2 CE2))
+    (nwM2: (m2(intr,Q,P,C2) NWM2))
+    (nw: (m2(intr,Q,P,C2) NW))
+    (prins: (P Q Ps)) OCs} .
+
+  rl [fake31] :
+    {(newmsg: MSG) 
+    (m1: M1) (m2: M2) (m3: M3)   
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc3: CE3)
+    (nwM3: NWM3)
+    (nw: NW) (nonces: (N Ns)) (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: m3(intr,P,Q,enc3(Q,N,n(dP,dP,dR),dP)))
+    (m1: empM1) (m2: empM2) 
+    (m3: m3(intr,P,Q,enc3(Q,N,n(dP,dP,dR),dP)))
+    (newCen1: empC1)
+    (newCen2: empC2)
+    (newCen3: (if Q == intr then empC3 else enc3(Q,N,n(dP,dP,dR),dP) fi))
+    (cenc3: (if Q == intr then CE3 else (enc3(Q,N,n(dP,dP,dR),dP) CE3) fi))
+    (nwM3: (m3(intr,P,Q,enc3(Q,N,n(dP,dP,dR),dP)) NWM3))
+    (nw: (m3(intr,P,Q,enc3(Q,N,n(dP,dP,dR),dP)) NW))
+    (nonces: (N Ns)) (prins: (P Q Ps)) OCs} .
+
+  rl [fake32] :
+    {(newmsg: MSG) 
+    (m1: M1) (m2: M2) (m3: M3)
+    (newCen1: Ce1) (newCen2: Ce2) (newCen3: Ce3)
+    (cenc3: (C3 CE3))
+    (nwM3: NWM3)
+    (nw: NW) 
+    (prins: (P Q Ps)) OCs}
+    =>
+    {(newmsg: m3(intr,P,Q,C3))
+    (m1: empM1) (m2: empM2) (m3: m3(intr,P,Q,C3))
+    (newCen1: empC1) (newCen2: empC2) (newCen3: C3)
+    (cenc3: (C3 CE3))
+    (nwM3: (m3(intr,P,Q,C3) NWM3))
+    (nw: (m3(intr,P,Q,C3) NW)) 
+    (prins: (P Q Ps)) OCs} .
+endm
+
+eof
+
+
+search [1,5] in NSLPK : init =>* {(nonces: (n(P,Q,R) Ns)) OCs} such that not(P == intr or Q == intr) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,C1) NW)) (nonces: Ns) OCs} such that not(Q == intr implies n1(C1) \in Ns) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m2(P,P,Q,enc2(Q,N,N',P)) NW)) (nonces: Ns) OCs} such that not(Q == intr implies (N' N \in Ns)) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m3(P,P,Q,C3) NW)) (nonces: Ns) OCs} such that not(Q == intr implies n1(C3) \in Ns) . ***
+search [1,5] in NSLPK : init =>* {(nonces: (n(P,Q,R) Ns)) (urand: Rs) OCs} such that not(R \in Rs) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,enc1(Q,N,NON,P)) m2(Q',Q,P,enc2(P,N,N',Q)) NW)) OCs}
+                        such that not(P =/= intr implies m2(Q,Q,P,enc2(P,N,N',Q)) \in (m2(Q',Q,P,enc2(P,N,N',Q)) NW)) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m2(Q,Q,P,enc2(P,N,N',Q)) m3(P',P,Q,enc3(Q,N',NON,P)) NW)) OCs}
+                        such that not(Q =/= intr implies m3(P,P,Q,enc3(Q,N',NON,P)) \in (m3(P',P,Q,enc3(Q,N',NON,P)) NW)) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,C1) NW)) OCs} such that not(Q == intr implies gen(n1(C1)) =/= intr) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,enc1(Q,N,NON,P)) NW)) OCs} such that not(P == intr implies (gen(N) == intr or forwhom(N) == intr)) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m3(P,P,Q,enc3(Q,N,NON,dP)) NW)) OCs} such that not(P =/= intr and Q =/= intr implies gen(N) == Q) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,C1) NW)) (nonces: Ns) OCs} such that not(p(C1) == intr implies n1(C1) \in Ns) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m2(P,P,Q,enc2(Q,N,N',P)) NW)) OCs} such that not(P =/= intr implies forwhom(N') == Q) . ***
+
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,C1) NW)) (nonces: Ns) OCs} such that not(k(C1) == intr implies n1(C1) \in Ns) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m2(P,P,Q,C2) NW)) (nonces: Ns) OCs} such that not(k(C2) == intr implies (n1(C2) n2(C2) \in Ns)) . ***
+search [1,5] in NSLPK : init =>* {(nw: (m3(P,P,Q,C3) NW)) (nonces: Ns) OCs} such that not(k(C3) == intr implies n1(C3) \in Ns) . ***
+search [1,5] in NSLPK : init =>* {(nonces: (n(P,Q,R) Ns)) (urand: Rs) OCs} such that not(P =/= intr implies R \in Rs) . ***
+
+*** Nonce secrecy property
+search [1,5] in NSLPK : init =>* {(nonces: (n(P,Q,R) Ns)) OCs} such that P =/= intr /\ Q =/= intr .
+search [1,5] in NSLPK : init =>* {(nonces: (N Ns)) OCs} such that gen(N) =/= intr /\ forwhom(N) =/= intr . ***lem130
+search [1,5] in NSLPK : init =>* {(cenc1: (C1 CE1)) OCs} such that k(C1) == intr . ***lem100 110 120
+
+search [1,5] in NSLPK : init =>* {(nonces: (N Ns)) (cenc1: (C1 CE1)) OCs} such that n1(C1) \in (n1(C1) Ns) /\ not (gen(n1(C1)) == intr or forwhom(n1(C1)) == intr).
+search [1,5] in NSLPK : init =>* {(nonces: (N Ns)) OCs} such that gen(N) =/= intr . ***solution found 
+search [1,5] in NSLPK : init =>* {(cenc1: (C1 CE1)) (nonces: (n1(C1) Ns)) OCs} such that gen(n1(C1)) =/= intr .
+search [1,5] in NSLPK : init =>* {(cenc3: (C3 CE3)) (nonces: (n1(C3) Ns)) OCs} such that gen(n1(C3)) =/= intr .
+search [1,5] in NSLPK : init =>* {(cenc2: (C2 CE2)) (nonces: (n1(C2) n2(C2) Ns)) OCs} such that not(gen(n1(C2)) == intr or gen(n2(C2)) == intr) .
+***above 3 lines imply lem160
+
+search [1,5] in NSLPK : init =>* {(cenc1: (C1 CE1)) (nonces: (n1(C1) Ns)) OCs} such that p(C1) =/= intr . ***lem140,150
+search [1,5] in NSLPK : init =>* {(cenc2: (C2 CE2)) (urand: (rand(n2(C2)) Rs)) OCs} such that k(C2) == intr . ***lem190
+search [1,5] in NSLPK : init =>* {(cenc1: (C1 CE1)) (urand: (rand(n1(C1)) Rs)) OCs} such that not (p(C1) =/= intr and k(C1) =/= intr) . ***lem200
+
+search [1,5] in NSLPK : init =>* {(nonces: (N Ns)) (urand: (rand(N) Rs)) OCs} such that gen(N) == intr . ***lem210
+search [1,5] in NSLPK : init =>* {(cenc3: (C3 CE3)) (nw: (m3(C,S,Re,C3) NW)) OCs} 
+  such that C =/= intr and S =/= intr and Re =/= intr and 
+    not (k(C3) =/= intr and forwhom(n1(C3)) =/= intr and gen(n1(C3)) =/= intr and (C3 \in m3(C,S,Re,C3) NW)) . ***lem230
+
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,C1) NW)) (cenc2: (C2 CE2)) OCs} such that P =/= intr and not (m2(Q,Q,P,C2) \in m2(Q,Q,P,C2) NW) . ***lem220
+search [1,5] in NSLPK : init =>* {(cenc3: (C3 CE3)) (urand: Rs) OCs} such that k(C3) =/= intr and not (rand(n1(C3)) \in rand(n1(C3)) Rs) . ***lem240
+search [1,5] in NSLPK : init =>* {(cenc2: (C2 CE2)) (urand: Rs) OCs} such that p(C2) =/= intr and k(C2) =/= intr and not (rand(n2(C2)) \in rand(n2(C2)) Rs) . ***lem250
+search [1,5] in NSLPK : init =>* {(nw: (m2(P,P,Q,C2) NW)) OCs} such that P =/= intr and not forwhom(n2(C2)) == Q . ***lem260
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,C1) m2(Q',Q,P,C2) NW)) OCs} such that P =/= intr and not (m2(Q,Q,P,C2) \in m2(Q,Q,P,C2) NW) . ***lem170
+search [1,5] in NSLPK : init =>* {(nw: (m2(Q,Q,P,C2) m3(P',P,Q,C3) NW)) OCs} such that Q =/= intr and not (m3(P,P,Q,C3) \in m3(P,P,Q,C3) NW) . ***lem180
+
+***(some chars
+search [1,5] in NSLPK : init =>* {(nw: (m1(P',P,Q,C1) NW)) (cenc1: (C1 CE1)) OCs} 
+  such that not (Q =/= intr or k(C1) =/= intr) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m2(P',P,Q,C2) NW)) (cenc2: (C2 CE2)) OCs} 
+  such that not (Q =/= intr or k(C2) =/= intr) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m3(P',P,Q,C3) NW)) (cenc3: (C3 CE3)) OCs} 
+  such that not (Q =/= intr or k(C3) =/= intr) .
+
+search [1,5] in NSLPK : init =>* {(nonces: (N Ns)) (urand: Rs) OCs} such that not (rand(N) \in (rand(N) Rs)) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m1(P',P,Q,C1) NW)) (nonces: (n1(C1) Ns)) (urand: Rs) OCs} such that not (rand(n1(C1)) == r1 and r1 \in (r1 Rs)) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m1(P',P,Q,C1) NW)) (nonces: (n1(C1) Ns)) (urand: Rs) OCs} such that not (P' == P and p(C1) == gen(n1(C1))) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m1(P',P,Q,C1) NW)) (nonces: (n1(C1) Ns)) (urand: Rs) OCs} such that not (forwhom(n1(C1)) == intr and rand(n1(C1)) == r1 and r1 \in (r1 Rs)) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m3(P',P,Q,C3) NW)) (nonces: (n1(C3) Ns)) (urand: Rs) OCs} such that not (rand(n1(C3)) == r2 and r2 \in (r2 Rs)) .
+)
+
+***new chars:
+***search [1,5] in NSLPK : init =>* {(cenc2: (C2 CE2)) (urand: Rs) OCs} such that p(C2) =/= intr and k(C2) =/= intr and not (rand(n2(C2)) \in Rs) .
+
+search [1,5] in NSLPK : init =>* {(cenc2: (C2 CE2)) (urand: Rs) OCs} such that p(C2) =/= intr and k(C2) =/= intr 
+                                and gen(n2(C2)) =/= intr and forwhom(n2(C2)) =/= intr and not (rand(n2(C2)) \in Rs) .
+
+search [1,5] in NSLPK : init =>* {(nonces: (N Ns)) (urand: Rs) OCs} such that not (rand(N) \in Rs) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,C1) NW)) OCs} such that P =/= intr and p(C1) =/= intr and not forwhom(n1(C1)) == Q .
+
+search [1,5] in NSLPK : init =>* {(nw: (m1(P,P,Q,enc1(Q,N,NON,P)) NW)) OCs} such that P == intr and not (gen(N) == intr or forwhom(N) == intr) .
+
+search [1,5] in NSLPK : init =>* {(nw: (m3(P,P,Q,enc3(Q,N,NON,dP)) NW)) OCs} such that P =/= intr and Q =/= intr and not gen(N) == Q .
+
+***search [1,5] in NSLPK : init =>* {(nw: (m3(P,P,Q,enc3(Q,N,NON,dP)) NW)) OCs} such that P =/= intr and not (gen(N) == Q or forwhom(N) == Q) .
+
+
+*** Correspondency property for initiator P
+search [1,5] in NSLPK : init =>*
+{(nw: (m1(P,P,Q,enc1(Q,N,NON,P)) m2(Q',Q,P,enc2(P,N,N',Q)) m3(P,P,Q,enc3(Q,N',NON,dP)) NW)) OCs}
+such that not (m2(Q,Q,P,enc2(P,N,N',Q)) \in (m2(Q',Q,P,enc2(P,N,N',Q)) NW)) /\ P =/= intr /\ Q =/= intr .
+
+*** Correspondency property for responder Q
+search [1,5] in NSLPK : init =>*
+{(nw: (m1(P',P,Q,enc1(Q,N,NON,P)) m2(Q,Q,P,enc2(P,N,N',Q)) m3(P'',P,Q,enc3(Q,N',NON,dP)) NW)) OCs}
+such that not (m1(P,P,Q,enc1(Q,N,NON,P)) \in (m1(P',P,Q,enc1(Q,N,NON,P)) NW) and
+                         m3(P,P,Q,enc3(Q,N',NON,dP)) \in (m3(P'',P,Q,enc3(Q,N',NON,dP)) NW) )
+                 /\ P =/= intr /\ Q =/= intr .
+
+*** Correspondency property for initiator P
+search [1,5] in NSLPK : init
+=>* {(nw: (m1(P,P,Q,enc1(Q,N,NON,P)) m2(Q',Q,P,enc2(P,N,N',Q)) NW)) OCs}
+such that not((P =/= intr) implies
+              m2(Q,Q,P,enc2(P,N,N',Q)) \in (m2(Q',Q,P,enc2(P,N,N',Q)) NW)) .
+
+*** Correspondency property for responder Q
+search [1,5] in NSLPK : init
+=>* {(nw: (m2(Q,Q,P,enc2(P,N,N',Q)) m3(P'',P,Q,enc3(Q,N',NON,dP)) NW)) OCs}
+such that not((Q =/= intr) implies
+              m3(P,P,Q,enc3(Q,N',NON,dP)) \in (m3(P'',P,Q,enc3(Q,N',NON,dP)) NW)) .
+              )
+

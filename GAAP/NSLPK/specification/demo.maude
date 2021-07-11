@@ -1,0 +1,31 @@
+in utils .
+in meta-utils .
+in nslpk .   
+in metaSearch .
+
+mod DEMO is
+    pr SEARCH .
+    pr NSLPK .
+    sorts ListConfig .
+    subsorts Config < ListConfig .
+    
+    op init : -> Config .
+    eq init = {(newmsg: empt) (m1: empM1) (m2: empM2) (m3: empM3) 
+                (nonces: emp) (nw: emp)
+                (newCen1: empC1) (newCen2: empC2) (newCen3: empC3)
+                (cenc1: emp) (cenc2: emp) (cenc3: emp)
+                (nwM1: emp) (nwM2: emp) (nwM3: emp) (urand: emp)
+                (rands: (r1 r2)) (prins: (p q intr))} .
+    op nil : -> ListConfig .
+    op _||_ : Config ListConfig -> ListConfig .
+    op _||_ : ListConfig ListConfig -> ListConfig .
+
+    var T : Term .
+    var TL : TermList .
+
+    op downTermSearch : TermList -> ListConfig .
+    eq downTermSearch(empty) = nil .
+    eq downTermSearch((T,TL)) =  downTerm(T, nil) || downTermSearch(TL) .
+endm
+
+reduce in DEMO : downTermSearch(genSeq('NSLPK, upTerm(init), 200)) .

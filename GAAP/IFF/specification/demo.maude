@@ -1,0 +1,26 @@
+in utils .
+in meta-utils .
+in iff_new .   
+in metaSearch .
+
+mod DEMO is
+    pr SEARCH .
+    pr IFF .
+    sorts ListConfig .
+    subsorts Config < ListConfig .
+    
+    op init : -> Config .
+    eq init = {(newmsg: empt) (cm: empCM) (rm: empRM) (nw: emp) (urand: emp) (rands: r) (cipher: emp) (nwCM: emp) (nwRM: emp) (prins: (p q intr))} .
+    op nil : -> ListConfig .
+    op _||_ : Config ListConfig -> ListConfig .
+    op _||_ : ListConfig ListConfig -> ListConfig .
+
+    var T : Term .
+    var TL : TermList .
+
+    op downTermSearch : TermList -> ListConfig .
+    eq downTermSearch(empty) = nil .
+    eq downTermSearch((T,TL)) =  downTerm(T, nil) || downTermSearch(TL) .
+endm
+
+reduce in DEMO : downTermSearch(genSeq('IFF, upTerm(init), 40)) .

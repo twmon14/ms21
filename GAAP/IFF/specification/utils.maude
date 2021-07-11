@@ -1,0 +1,23 @@
+fmod ILIST{X :: TRIV} is
+  protecting NAT .
+  sorts NeIList{X} IList{X} .
+  subsort X$Elt < NeIList{X} < IList{X} .
+
+  op empc : -> IList{X} [ctor] .
+  op _|_ : IList{X} IList{X} -> IList{X} [ctor assoc id: empc prec 25] .
+  op _|_ : NeIList{X} IList{X} -> NeIList{X} [ctor ditto] .
+  op _|_ : IList{X} NeIList{X} -> NeIList{X} [ctor ditto] .
+
+  var E E' : X$Elt .
+  vars A L : IList{X} .
+  var C : Nat .
+
+  op isize : IList{X} -> Nat .
+  op isize : NeIList{X} -> NzNat .
+  eq isize(L) = $isize(L, 0) .
+
+  op $isize : IList{X} Nat -> Nat .
+  eq $isize(empc, C) = C .
+  eq $isize(E | L, C) = $isize(L, C + 1) .
+
+endfm

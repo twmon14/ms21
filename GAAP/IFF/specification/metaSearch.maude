@@ -1,0 +1,98 @@
+view TermListView from TRIV to META-TERM is
+    sort Elt to TermList .
+endv
+
+mod SEARCH is
+    pr IFF .
+    pr META-UTILS .
+    pr RANDOM .
+
+    var M : Qid .
+    vars T T' : Term .
+    var TL : TermList .
+    var B : NzNat .
+    vars N C : Nat .
+    var RT : ResultTriple? .
+
+    ***(
+        Generate a sequence of states with a bound number
+        - Qid -> a name of Module
+        - Term -> an initil term
+        - Bound -> a bound number
+    )
+    op genSeq : Qid Term Bound -> TermList .
+    eq genSeq(M, empty, N) = empty .
+    eq genSeq(M, T, 0) = empty .
+    eq genSeq(M, T, B) = initGenSeq(M, T, B) .
+
+    ***(
+        init before generating sequence of states
+    )
+    op initGenSeq : Qid Term NzNat -> TermList .
+    eq initGenSeq(M, T, B) = $genSeq(M, T, B) .
+
+    ***(
+        start to generate a sequence of states
+    )
+    op $genSeq : Qid Term Bound -> TermList .
+    
+    ceq $genSeq(M, T, B) = if (T' == empty)
+                            then empty
+                            else ( 
+                                T', $genSeq(M, T', sd(B, 1))
+                            ) fi
+                            if T' := nextTerm(getSuccessors(M, T), random(B)) .
+    eq $genSeq(M, T, 0) = empty .
+
+    ***(
+        get all possible successors
+    )
+    op getSuccessors : Qid Term -> TermList .
+    eq getSuccessors(M, empty) = empty .
+    eq getSuccessors(M, T) = findSuccessors(
+        metaSearch(upModule(M, false), T, 'S:Config, nil, '+, 1, 0),
+        M,
+        T,
+        0
+    ) .
+
+    ***(
+        find all possible successors by metaSearch
+    )
+    op findSuccessors : ResultTriple? Qid Term Nat -> TermList . 
+    eq findSuccessors(failure, M, T, N) = empty .
+    eq findSuccessors(RT, M, T, N) = getTerm(RT) , findSuccessors(
+        metaSearch(upModule(M, false), T, 'S:Config, nil, '+, 1, N + 1),
+        M,
+        T,
+        N + 1
+    ) .
+
+    ***(
+        A random selecttion from a TermList 
+    )
+    op nextTerm : TermList Nat -> Term .
+    eq nextTerm(empty, N) = empty .
+    eq nextTerm(TL, N) = getTermByIndex(TL, N rem sizeTermList(TL)) .
+
+    *** ====> START TERMLIST UTILS
+    ***(
+        size of term list
+    )
+    op sizeTermList : TermList -> Nat .
+    eq sizeTermList(TL) = $sizeTermList(TL, 0) .
+
+    op $sizeTermList : TermList Nat -> Nat .
+    eq $sizeTermList(empty, C) = C .
+    eq $sizeTermList((T, TL), C) = $sizeTermList(TL, C + 1) .
+
+    ***(
+        get a term by index
+    )
+    op getTermByIndex : TermList Nat -> Term .
+    eq getTermByIndex(empty, N) = empty .
+    eq getTermByIndex((T, TL), 0) = T .
+    eq getTermByIndex((T, TL), N) = getTermByIndex(TL, sd(N, 1)) .
+    *** <==== END TERMLIST UTILS
+
+endm
